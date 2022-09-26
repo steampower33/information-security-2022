@@ -5,6 +5,7 @@
 # Install with: pip install bitarray
 
 from ctypes import ArgumentError
+from curses import KEY_A1
 import re
 from bitarray import bitarray, util as ba_util
 
@@ -132,12 +133,30 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
     ep_r_text = bitarray()
     for _ in range(len(EP)):
         ep_r_text.append(r_text[EP[_]])
+
+    # 3. 라운드 키 생성, 키는 2개 사용
+    round_keys = schedule_keys(key)
+    K1 = round_keys[0]
+    K2 = round_keys[1]
     
     # 암호화, 복호화 시작
     if mode == MODE_ENCRYPT:
-        
-        return
+        # 라운드 1
+        round_1_R = round(ep_r_text, K1) ^ l_text
+        round_1_L = ep_r_text
+
+        # 라운드 2
+        round_2_R = round(round_1_R, K2) ^ round_1_L
+        round_2_L = round_1_R
+
+        result_text = round_2_L + round_2_R
+
+        # FP 적용
+        for _ in range(len(IP_1)):
+            result.append(result_text[IP_1[_]])
+
     elif mode == MODE_DECRYPT:
+
         return
     
     return result
