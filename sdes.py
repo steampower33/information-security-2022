@@ -53,7 +53,7 @@ schedule_keys: generate round keys for round function
 returns array of round keys.
 keep in mind that total rounds of S-DES is 2.
 '''
-def schedule_keys(key: bitarray) -> bitarray:
+def schedule_keys(key: bitarray) -> list:
     round_keys = []
     permuted_key = bitarray()
 
@@ -126,30 +126,31 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
     for _ in range(len(IP)):
         p_text.append(text[IP[_]])
     
-    # 2. L, R 가르고, R은 확장
+    # 2. L, R 분리
     l_text = p_text[0:4]
     r_text = p_text[4:8]
-
-    ep_r_text = bitarray()
-    for _ in range(len(EP)):
-        ep_r_text.append(r_text[EP[_]])
 
     # 3. 라운드 키 생성, 키는 2개 사용
     round_keys = schedule_keys(key)
     K1 = round_keys[0]
     K2 = round_keys[1]
     
+    # 라운드 함수에서 SBOX 통과
     # 암호화 시작 K1, K2 순
     if mode == MODE_ENCRYPT:
         # 라운드 1
-        round_1_R = round(ep_r_text, K1) ^ l_text
-        round_1_L = ep_r_text
+        round_1 = round(r_text, K1)
+        round_1_R = l_text ^ round_1
+        round_1_L = r_text
+        #print(round_1, round_1_R, round_1_L)
 
         # 라운드 2
-        round_2_R = round(round_1_R, K2) ^ round_1_L
+        round_2 = round(round_1_R, K2)
+        round_2_R = round_2 ^ round_1_L
         round_2_L = round_1_R
+        #print(round_2, round_2_R, round_2_L)
 
-        result_text = round_2_L + round_2_R
+        result_text = round_2_R + round_2_L
 
         # FP 적용
         for _ in range(len(IP_1)):
@@ -158,14 +159,14 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
     # 복호화 시작 K2, K1 순
     elif mode == MODE_DECRYPT:
         # 라운드 1
-        round_1_R = round(ep_r_text, K2) ^ l_text
-        round_1_L = ep_r_text
+        round_1_R = round(r_text, K2) ^ l_text
+        round_1_L = r_text
 
         # 라운드 2
         round_2_R = round(round_1_R, K1) ^ round_1_L
         round_2_L = round_1_R
 
-        result_text = round_2_L + round_2_R
+        result_text = round_2_R + round_2_L
 
         # FP 적용
         for _ in range(len(IP_1)):
