@@ -5,7 +5,7 @@ from threading import Thread
 from Crypto.Random import get_random_bytes
 
 ENCRYPTION_KEY:bytes = b""
-CLIENT_LIST:dict[AddressInfo, socket] = {}
+CLIENT_LIST:dict = {}
 
 class SocketWorker(Thread):
     def __init__(self, socket: socket, addr:AddressInfo):
