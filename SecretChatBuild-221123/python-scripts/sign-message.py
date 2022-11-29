@@ -25,9 +25,9 @@ def read_from_base64():
 
 def sign(msg, key):
     # PKCS #1 v1.5 를 이용한 전자서명 생성
-    prikey = RSA.import_key(key)
+    rsa = RSA.import_key(key)
     h = make_message_hash(msg)
-    signature = pkcs1_15.new(prikey).sign(h)
+    signature = pkcs1_15.new(rsa).sign(h)
     return signature
 
 
