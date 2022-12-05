@@ -22,8 +22,10 @@ def read_as_json():
 # https://pycryptodome.readthedocs.io/en/latest/src/signature/pkcs1_v1_5.html
 def verify(hash, key, signature):
     # PKCS #1 v1.5 를 이용한 전자서명 검증, 성공시 True, 실패시 False 리턴
+	k = RSA.import_key(decode_base64(key))
+	sign = decode_base64(signature)
 	try:
-		pkcs1_15.new(RSA.import_key(key)).verify(hash, signature)
+		pkcs1_15.new(k).verify(hash, sign)
 		print True
 	except (ValueError, TypeError):
 		print False
@@ -33,11 +35,11 @@ cert = read_as_json()
 hash_compare = make_cert_hash(cert)# 비교할 해시 생성
 print(cert)
 
-# server_pubkey = # bytes:서버 공개키 (HINT: JSON에는 BASE64 형태로 제공되어 있음)
-# signature = # bytes:서버 서명 (HINT: JSON에는 BASE64 형태로 제공되어 있음)
+server_pubkey = cert("serverPubKey") # bytes:서버 공개키 (HINT: JSON에는 BASE64 형태로 제공되어 있음)
+signature = cert("signature") # bytes:서버 서명 (HINT: JSON에는 BASE64 형태로 제공되어 있음)
 
-# cert['isValid'] = verify(hash_compare, server_pubkey, signature) # 인증서 내 서명 검증
+cert['isValid'] = verify(hash_compare, server_pubkey, signature) # 인증서 내 서명 검증
 
-# json_str = json.dumps(cert).encode('utf-8')
+json_str = json.dumps(cert).encode('utf-8')
 
-# print(encode_base64(json_str))
+print(encode_base64(json_str))
